@@ -1,0 +1,30 @@
+---
+title: "p8105_hw3_jdv2118"
+author: "Justin Vargas"
+output: github_document
+---
+# Load Libraries
+
+```{r}
+library(tidyverse)
+
+library(janitor)
+```
+
+# Problem 2
+
+accelerator_data = 
+  read_csv("data/accel_data.csv") %>%
+  clean_names() %>%
+  pivot_longer(
+  activity_1:activity_1440,
+    names_to = "minute",
+    values_to = "activity_count",
+    names_prefix = "activity_") %>%
+  mutate(
+    weekday_vs_weekend =
+    if_else(day %in% c("Saturday", "Sunday"), 'Weekend', 'Weekday')) %>%
+  
+  
+  h
+  view(accelerator_data)
