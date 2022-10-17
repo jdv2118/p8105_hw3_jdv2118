@@ -3,17 +3,42 @@ title: "p8105_hw3_jdv2118"
 author: "Justin Vargas"
 output: github_document
 ---
-# Load Libraries
+
+# Loading libraries and settings for plots
 
 ```{r}
 library(tidyverse)
 
 library(janitor)
+
+library(knitr)
+
+opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(
+  theme_minimal() + theme(legend.position = "bottom")
+  )
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
 # Problem 2
 
-accelerator_data = 
+```{r}
+accelerometer_data = 
   read_csv("data/accel_data.csv") %>%
   clean_names() %>%
   pivot_longer(
@@ -22,9 +47,70 @@ accelerator_data =
     values_to = "activity_count",
     names_prefix = "activity_") %>%
   mutate(
+      day = factor(day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+      #Should the day values be arranged in a certain order or left as is?
     weekday_vs_weekend =
-    if_else(day %in% c("Saturday", "Sunday"), 'Weekend', 'Weekday')) %>%
-  
-  
-  h
-  view(accelerator_data)
+    if_else(day %in% c("Saturday", "Sunday"), 'Weekend', 'Weekday'), 
+    #Should the weekday vs weekend variable be a character?
+    minute = as.numeric(minute))
+    
+head(accelerometer_data)
+view(accelerometer_data)
+```
+
+The aforementioned dataset, which the data for has been tidied and wrangled, focuses on accelerometer data that was collected from a 63 year-old male, who has a BMI of 25 and has been diagnosed with congestive heart failure.  The dataset consists of `r ncol(accelerometer_data)` columns and `r nrow(accelerometer_data)` rows.  The 6 variables within the dataset are "week", "day_id", "day", "minute", "activity_count", and "weekday_vs_weekend".  There are 4 variables in the dataset that have a double class and they are "week", "day_id", "minute", and "activity_count".  The "day" variable is a factor data type and "weekday_vs_weekend" is a character data type.  It is important to note that the "weekday_vs_weekend" variable was not part of the original dataset and was created once the data was tidied and wrangled to differentiate whether the day name in the "day" variable was either a weekday or a weekend.
+
+```{r}
+total_activity_table =  
+  accelerometer_data %>%
+  group_by(week, day) %>%
+  #how do I fix the factor issue with day of the week?
+  summarize(
+    total_activity = sum(activity_count, na.rm = TRUE) #Is the na.rm = TRUE necessary?
+  ) %>%
+  pivot_wider(
+  names_from = "day",
+  values_from = "total_activity"
+) %>%
+clean_names()
+#Do we need to use the kable function for the table or is the table fine as is?
+view(total_activity_table)
+```
+
+```{r}
+ggplot(accelerometer_data, aes(x = minute, y = activity_count, color = day)) + 
+  geom_point(alpha = .5) +
+  labs(
+    x = "Minutes of a Day",
+    y = "Activity Counts",
+    title = "Scatterplot of Activity Counts Per Minute of Each Day"
+  )
+#Do we need to do ggsave? Or do anything to the plot in terms of width and height?
+```
+
+# Problem 3 
+
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+```
+
+```{r}
+ny_noaa %>%
+separate(col = date,   into = c("year", "month", "day"), sep = "-") %>%
+mutate(
+   year = as.numeric(year),
+   month = as.numeric(month),
+   day = as.numeric(day),
+   tmax = as.numeric(tmax),
+   tmin = as.numeric(tmin),
+   tmax = tmax / 10,
+   tmin = tmin / 10,
+   prcp = prcp / 10, 
+   snowfall_count = count(distinct(snow))
+)
+
+count(dist(ny_noaa, snow))
+view(ny_noaa)
+```
+
