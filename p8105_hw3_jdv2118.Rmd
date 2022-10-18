@@ -41,7 +41,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 # Problem 2
 
-## Data Cleaning and Tidying
+## Data cleaning and tidying
 
 ```{r, message = FALSE}
 accelerometer_data = 
@@ -63,7 +63,7 @@ accelerometer_data
 
 The aforementioned dataset, which the data for has been tidied and wrangled, focuses on accelerometer data that was collected from a 63 year-old male, who has a BMI of 25 and has been diagnosed with congestive heart failure.  The dataset consists of `r ncol(accelerometer_data)` columns and `r nrow(accelerometer_data)` rows.  The 6 variables within the dataset are "week", "day_id", "day", "minute", "activity_count", and "weekday_vs_weekend".  There are 4 variables in the dataset that have a double class and they are "week", "day_id", "minute", and "activity_count".  The "day" variable has a factor data type and "weekday_vs_weekend" is a character data type.  It is important to note that the "weekday_vs_weekend" variable was not part of the original dataset and was created once the data was tidied and wrangled to differentiate whether the name of the day in the "day" variable was either a weekday or a weekend.
 
-## Total Activity Count Table
+## Total activity count table
 
 ```{r}
 total_activity_table =  
@@ -83,7 +83,7 @@ total_activity_table
 
 The code above is used to create a table that consists of the total activity counts for each day that data was collected.  This table does illustrate apparent trends.  One trend is that for all weekdays, the total activity counts increase from the first week to the fifth week for each corresponding weekday.  Another trend is that the total activity counts on Sunday decrease from the first week to the fifth week.  One other trend is that the total activity counts on Saturday decrease from the first week to the fifth week.  Another trend is that the total activity counts increase from Monday to Sunday for the first and second week.  However, the total activity counts decrease from Monday to Sunday for the third, fourth, and fifth weeks.
 
-## Scatterplot of Activity Counts by Minute of Each Day
+## Scatterplot of activity counts by minute of each day
 
 ```{r}
 ggplot(accelerometer_data, aes(x = minute, y = activity_count, color = day)) + 
@@ -99,7 +99,7 @@ The code above is used to create a scatterplot of activity counts by minutes of 
 
 # Problem 3 
 
-## Loading Data 
+## Loading data 
 
 ```{r}
 library(p8105.datasets)
@@ -111,6 +111,7 @@ ny_noaa
 
 The code above is used to load the "p8105.datasets" package and load the dataset called "ny_noaa".  The dataset consists of `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.  There are 7 variables, which are "id", "date", "prcp", "snow", "snwd", "tmax", and "tmin".  All of the variables except for "id" and "date" have a integer data type, while "date" has a date data type and "id" has a character data type.  It is important to note that missing data can be found in all variables except for "date" and "id".  Missing data may cause issues when computing summaries of the data and may affect the plots that will be created using the data.
 
+## Data cleaning and tidying 
 ```{r}
 ny_noaa_tidy =
   ny_noaa %>%
@@ -129,6 +130,7 @@ mutate(
 ny_noaa_tidy
 ```
 
+The code above was used to separate variables for "year", "month", and "day".  The variables of "tmax", "tmin", "prcp" were changed to ensure that they were in reasonable units.  The variable, "snowfall", was not changed as it was already in a reasonable unit.
 ```{r}
 ny_noaa_snow = 
   ny_noaa_tidy %>%
@@ -138,12 +140,17 @@ ny_noaa_snow =
 ny_noaa_snow
 ```
 
+The code above is used to create a table of the most commonly observed values of snowfall, which are "0", "NA", and "25", respectively in that order.  "0" and "NA" may be the most commonly observed values for snowfall as it either does not snow at a weather station or data is not collected in regards to snowfall at a weather station.   
+
+## Line plot of average maximum temperature by year for January and July
+
 ```{r}
   ny_noaa_tidy %>% 
   group_by(id, year, month) %>%
   filter(
     month %in% c("1", "7")
   ) %>% 
+  mutate(month = recode(month, '1' = "January", '7' = "July")) %>%
   summarize(
     average_tmax = mean(tmax, na.rm = TRUE)
   ) %>%
@@ -156,6 +163,8 @@ ny_noaa_snow
   ) +
   facet_grid(. ~ month)
 ```
+
+The code above is used to create a two-panel plot of average maximum temperature by year for the months of January and July.  Based on the computed two-panel plot, we can see that the average maximum temperature in July is higher than the average maximum temperature in January across all years from 1980 to 2010.
 
 ```{r}
 outliers =
@@ -170,6 +179,8 @@ ny_noaa_tidy %>%
 
 summary(pull(outliers, average_tmax))
 ```
+
+Based on the computed two-panel plot, there are outliers.  For example, one outlier is `r min(pull(outliers, average_tmax)`, which is the minimum value in the dataset for the average maximum temperature, and another outlier is `r max(pull(outliers, average_tmax)`, which is the maximum value in the dataset for the average maximum temperature.
 
 ```{r}
 tmax_and_tmin =
@@ -198,3 +209,6 @@ snowfall_distribution =
 tmax_and_tmin / snowfall_distribution
 ```
 
+The code above is used to create a two-panel plot that shows a plot of tmax by tmin for the whole dataset and another plot shows the distribution of snowfall values that are greater than 0 and less than 100 separately by year.  The first plot shows that the most common maximum temperature is roughly 20 degrees celsius and the most common minimum temperature is 15 degrees celsius.  The most common minimum temperatures can roughly be found between -15 degrees celsius and 15 degrees celsius, while the most common maximum temperatures can be roughly found between 0 and 30 degrees celsius.
+
+The second plot shows that the snowfall values are the highest around 2010.  The plot also shows that snowfall values are also high between 1980 and 1990.
