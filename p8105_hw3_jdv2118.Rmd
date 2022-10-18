@@ -17,6 +17,8 @@ library(ggridges)
 
 library(patchwork)
 
+library(p8105.datasets)
+
 opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -94,7 +96,7 @@ instacart %>%
 
 Finally is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. This table has been formatted in an untidy manner for human readers. Pink Lady Apples are generally purchased slightly earlier in the day than Coffee Ice Cream, with the exception of day 5.
 
-```{r}
+```{r, message = FALSE}
 instacart %>%
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
   group_by(product_name, order_dow) %>%
@@ -129,7 +131,7 @@ The aforementioned dataset, which the data for has been tidied and wrangled, foc
 
 ## Total activity count table
 
-```{r}
+```{r, message = FALSE}
 total_activity_table =  
   accelerometer_data %>%
   group_by(week, day) %>%
@@ -166,8 +168,6 @@ The code above is used to create a scatterplot of activity counts by minutes of 
 ## Loading data 
 
 ```{r}
-library(p8105.datasets)
-
 data("ny_noaa")
 
 ny_noaa
@@ -208,7 +208,7 @@ The code above is used to create a table of the most commonly observed values of
 
 ## Line plot of average maximum temperature by year for January and July
 
-```{r}
+```{r, message = FALSE}
   ny_noaa_tidy %>% 
   group_by(id, year, month) %>%
   filter(
@@ -223,14 +223,14 @@ The code above is used to create a table of the most commonly observed values of
   labs(
     x = "Year",
     y = "Average Maximum Temperature (C)",
-    title = "Average Maximum Temperature vs. year by weather station in January and July",
+    title = "Average Maximum Temperature vs. Year by Weather Station in January and July",
   ) +
   facet_grid(. ~ month)
 ```
 
 The code above is used to create a two-panel plot of average maximum temperature by year for the months of January and July.  Based on the computed two-panel plot, we can see that the average maximum temperature in July is higher than the average maximum temperature in January across all years from 1980 to 2010.
 
-```{r}
+```{r, message = FALSE}
 outliers =
 ny_noaa_tidy %>% 
   group_by(id, year, month) %>%
@@ -240,13 +240,11 @@ ny_noaa_tidy %>%
   summarize(
     average_tmax = mean(tmax, na.rm = TRUE)
   )
-
-summary(pull(outliers, average_tmax))
 ```
 
-Based on the computed two-panel plot, there are outliers.  For example, one outlier is `r min(pull(outliers, average_tmax)`, which is the minimum value in the dataset for the average maximum temperature, and another outlier is `r max(pull(outliers, average_tmax)`, which is the maximum value in the dataset for the average maximum temperature.
+Based on the computed two-panel plot, there are outliers.  For example, one outlier is `r min(pull(outliers, average_tmax))`, which is the minimum value in the dataset for the average maximum temperature, and another outlier is `r max(pull(outliers, average_tmax))`, which is the maximum value in the dataset for the average maximum temperature.
 
-```{r}
+```{r, message = FALSE}
 tmax_and_tmin =
 ny_noaa_tidy %>% 
 ggplot(aes(x = tmin, y = tmax)) +
