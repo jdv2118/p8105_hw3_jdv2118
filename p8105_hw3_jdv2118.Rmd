@@ -6,12 +6,16 @@ output: github_document
 
 # Loading libraries and settings for plots
 
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 
 library(janitor)
 
 library(knitr)
+
+library(ggridges)
+
+library(patchwork)
 
 opts_chunk$set(
 	echo = TRUE,
@@ -37,7 +41,9 @@ scale_fill_discrete = scale_fill_viridis_d
 
 # Problem 2
 
-```{r}
+## Data Cleaning and Tidying
+
+```{r, message = FALSE}
 accelerometer_data = 
   read_csv("data/accel_data.csv") %>%
   clean_names() %>%
@@ -48,23 +54,21 @@ accelerometer_data =
     names_prefix = "activity_") %>%
   mutate(
       day = factor(day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
-      #Should the day values be arranged in a certain order or left as is?
     weekday_vs_weekend =
     if_else(day %in% c("Saturday", "Sunday"), 'Weekend', 'Weekday'), 
-    #Should the weekday vs weekend variable be a character?
     minute = as.numeric(minute))
     
-head(accelerometer_data)
-view(accelerometer_data)
+accelerometer_data
 ```
 
-The aforementioned dataset, which the data for has been tidied and wrangled, focuses on accelerometer data that was collected from a 63 year-old male, who has a BMI of 25 and has been diagnosed with congestive heart failure.  The dataset consists of `r ncol(accelerometer_data)` columns and `r nrow(accelerometer_data)` rows.  The 6 variables within the dataset are "week", "day_id", "day", "minute", "activity_count", and "weekday_vs_weekend".  There are 4 variables in the dataset that have a double class and they are "week", "day_id", "minute", and "activity_count".  The "day" variable is a factor data type and "weekday_vs_weekend" is a character data type.  It is important to note that the "weekday_vs_weekend" variable was not part of the original dataset and was created once the data was tidied and wrangled to differentiate whether the day name in the "day" variable was either a weekday or a weekend.
+The aforementioned dataset, which the data for has been tidied and wrangled, focuses on accelerometer data that was collected from a 63 year-old male, who has a BMI of 25 and has been diagnosed with congestive heart failure.  The dataset consists of `r ncol(accelerometer_data)` columns and `r nrow(accelerometer_data)` rows.  The 6 variables within the dataset are "week", "day_id", "day", "minute", "activity_count", and "weekday_vs_weekend".  There are 4 variables in the dataset that have a double class and they are "week", "day_id", "minute", and "activity_count".  The "day" variable has a factor data type and "weekday_vs_weekend" is a character data type.  It is important to note that the "weekday_vs_weekend" variable was not part of the original dataset and was created once the data was tidied and wrangled to differentiate whether the name of the day in the "day" variable was either a weekday or a weekend.
+
+## Total Activity Count Table
 
 ```{r}
 total_activity_table =  
   accelerometer_data %>%
   group_by(week, day) %>%
-  #how do I fix the factor issue with day of the week?
   summarize(
     total_activity = sum(activity_count, na.rm = TRUE) #Is the na.rm = TRUE necessary?
   ) %>%
@@ -73,9 +77,13 @@ total_activity_table =
   values_from = "total_activity"
 ) %>%
 clean_names()
-#Do we need to use the kable function for the table or is the table fine as is?
-view(total_activity_table)
+
+total_activity_table
 ```
+
+The code above is used to create a table that consists of the total activity counts for each day that data was collected.  This table does illustrate apparent trends.  One trend is that for all weekdays, the total activity counts increase from the first week to the fifth week for each corresponding weekday.  Another trend is that the total activity counts on Sunday decrease from the first week to the fifth week.  One other trend is that the total activity counts on Saturday decrease from the first week to the fifth week.  Another trend is that the total activity counts increase from Monday to Sunday for the first and second week.  However, the total activity counts decrease from Monday to Sunday for the third, fourth, and fifth weeks.
+
+## Scatterplot of Activity Counts by Minute of Each Day
 
 ```{r}
 ggplot(accelerometer_data, aes(x = minute, y = activity_count, color = day)) + 
@@ -85,18 +93,27 @@ ggplot(accelerometer_data, aes(x = minute, y = activity_count, color = day)) +
     y = "Activity Counts",
     title = "Scatterplot of Activity Counts Per Minute of Each Day"
   )
-#Do we need to do ggsave? Or do anything to the plot in terms of width and height?
 ```
+
+The code above is used to create a scatterplot of activity counts by minutes of the day.  One pattern that can be observed from this scatterplot is that the activity counts are lowest at the beginning of each day of the week.  Another pattern is that some activity counts for certain days are the highest roughly between the 1200 to 1300 minutes of the day, which would be roughly between 8:00pm and 9:40pm.  Also, the activity counts generally increase after the 250 minute mark for each day and stay relatively stable until the 1300 minute mark.  After the 1300 minute mark, the activity counts for each day decrease, but are still higher than they were at the beginning of each day.
 
 # Problem 3 
 
-```{r}
-library(p8105.datasets)
-data("ny_noaa")
-```
+## Loading Data 
 
 ```{r}
-ny_noaa %>%
+library(p8105.datasets)
+
+data("ny_noaa")
+
+ny_noaa
+```
+
+The code above is used to load the "p8105.datasets" package and load the dataset called "ny_noaa".  The dataset consists of `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.  There are 7 variables, which are "id", "date", "prcp", "snow", "snwd", "tmax", and "tmin".  All of the variables except for "id" and "date" have a integer data type, while "date" has a date data type and "id" has a character data type.  It is important to note that missing data can be found in all variables except for "date" and "id".  Missing data may cause issues when computing summaries of the data and may affect the plots that will be created using the data.
+
+```{r}
+ny_noaa_tidy =
+  ny_noaa %>%
 separate(col = date,   into = c("year", "month", "day"), sep = "-") %>%
 mutate(
    year = as.numeric(year),
@@ -106,11 +123,78 @@ mutate(
    tmin = as.numeric(tmin),
    tmax = tmax / 10,
    tmin = tmin / 10,
-   prcp = prcp / 10, 
-   snowfall_count = count(distinct(snow))
+   prcp = prcp / 10
 )
 
-count(dist(ny_noaa, snow))
-view(ny_noaa)
+ny_noaa_tidy
+```
+
+```{r}
+ny_noaa_snow = 
+  ny_noaa_tidy %>%
+  count(snow) %>%
+  arrange(desc(n))
+
+ny_noaa_snow
+```
+
+```{r}
+  ny_noaa_tidy %>% 
+  group_by(id, year, month) %>%
+  filter(
+    month %in% c("1", "7")
+  ) %>% 
+  summarize(
+    average_tmax = mean(tmax, na.rm = TRUE)
+  ) %>%
+  ggplot(aes(x = year, y = average_tmax, group = id)) +
+  geom_line(alpha = 0.5) +
+  labs(
+    x = "Year",
+    y = "Average Maximum Temperature (C)",
+    title = "Average Maximum Temperature vs. year by weather station in January and July",
+  ) +
+  facet_grid(. ~ month)
+```
+
+```{r}
+outliers =
+ny_noaa_tidy %>% 
+  group_by(id, year, month) %>%
+  filter(
+    month %in% c("1", "7")
+  ) %>% 
+  summarize(
+    average_tmax = mean(tmax, na.rm = TRUE)
+  )
+
+summary(pull(outliers, average_tmax))
+```
+
+```{r}
+tmax_and_tmin =
+ny_noaa_tidy %>% 
+ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex() +
+    labs(
+    x = "Minimum Temperature (C)",
+    y = "Maximum Temperature (C)",
+    title = "Maximum Vs Minimum Temperatures"
+    ) + 
+  theme(legend.position = "bottom", text = element_text(size = 7))
+
+
+snowfall_distribution =
+  ny_noaa_tidy %>% 
+  filter(snow > 0 & snow < 100) %>%
+  ggplot(aes(x = year, y = factor(snow))) +
+  geom_density_ridges() +
+  labs(
+    x = "Year",
+    y = "Snowfall (mm)",
+    title = "Snowfall Values by Year"
+    ) 
+
+tmax_and_tmin / snowfall_distribution
 ```
 
